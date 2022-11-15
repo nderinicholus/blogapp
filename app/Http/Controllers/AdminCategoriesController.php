@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
 
 class AdminCategoriesController extends Controller
 {
@@ -13,7 +16,8 @@ class AdminCategoriesController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::get();
+        return view('posts.categories.index', compact('categories'));
     }
 
     /**
@@ -23,7 +27,7 @@ class AdminCategoriesController extends Controller
      */
     public function create()
     {
-        //
+        return view('posts.categories.create');
     }
 
     /**
@@ -32,9 +36,12 @@ class AdminCategoriesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        //
+            
+        Category::create($request->validated());
+        
+        return redirect()->route('categories.index');
     }
 
     /**
@@ -45,7 +52,8 @@ class AdminCategoriesController extends Controller
      */
     public function show($id)
     {
-        //
+        $category = Category::findOrFail($id);
+        return view('posts.categories.show', compact('category'));
     }
 
     /**
@@ -56,7 +64,8 @@ class AdminCategoriesController extends Controller
      */
     public function edit($id)
     {
-        //
+        $category = Category::findOrFail($id);
+        return view('posts.categories.edit', compact('category'));
     }
 
     /**
