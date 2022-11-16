@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminPostsController;
 use App\Http\Controllers\AdminCategoriesController;
 
 /*
@@ -28,4 +29,5 @@ Route::middleware([
     })->name('dashboard');
     
     Route::resource('/posts/categories', AdminCategoriesController::class);
+    Route::resource('/posts', AdminPostsController::class);
 });

@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminPostsController extends Controller
 {
@@ -13,7 +17,9 @@ class AdminPostsController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::get();
+        
+        return view('posts.index', compact('posts'));
     }
 
     /**
@@ -23,7 +29,8 @@ class AdminPostsController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::get();
+        return view('posts.create', compact('categories'));
     }
 
     /**
@@ -34,7 +41,31 @@ class AdminPostsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'title' => 'required|max:255|unique:posts,title',
+            'body' => 'required',
+            'photo'           => 'required|image|max:2048',
+        ]);
+
+        $post = new Post();
+        $post->title = $request->title;
+        $post->post_slug     = Str::slug($request->title, '-');
+        $post->body = $request->body;
+        $post->category_id = $request->category_id;
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('images', 'public');
+
+            $post->photo = $path;
+        }
+
+        // dd($post);
+
+        $post->save();
+
+        return redirect()->route('posts.index');
+
+        
     }
 
     /**
@@ -43,9 +74,9 @@ class AdminPostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        //
+        return view('posts.show', compact('post'));
     }
 
     /**
@@ -54,9 +85,10 @@ class AdminPostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        $categories = Category::get();
+        return view('posts.edit', compact(['post', 'categories']));
     }
 
     /**
@@ -68,7 +100,35 @@ class AdminPostsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->validate($request, [
+            'title' => 'required|max:255',
+            'body' => 'required',
+            'photo'           => 'image|max:2048',
+        ]);
+
+        $post = Post::findOrFail($id);
+        $post->title = $request->title;
+        $post->post_slug     = Str::slug($request->title, '-');
+        $post->body = $request->body;
+        $post->category_id = $request->category_id;
+
+       if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('images', 'public');
+
+            $oldfile = $post->photo;
+
+            $post->photo = $path;
+
+            if ($oldfile) {
+                Storage::disk('public')->delete($oldfile);
+            }
+        }
+
+
+        $post->save();
+
+        return redirect()->route('posts.index');
+
     }
 
     /**
@@ -79,6 +139,13 @@ class AdminPostsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        
+        $post = Post::findOrFail($id);
+
+        Storage::disk('public')->delete($post->photo);
+        $post->delete();
+
+
+        return redirect()->route('posts.index');
     }
 }
