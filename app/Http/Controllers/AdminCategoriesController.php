@@ -6,6 +6,7 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 
 class AdminCategoriesController extends Controller
 {
@@ -77,7 +78,19 @@ class AdminCategoriesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->validate($request, [
+            'title'           => 'required|string'
+        ]);
+
+        $category = Category::findOrFail($id);
+        $category->title = $request->title;
+        $category->category_slug     = Str::slug($request->title, '-');
+
+        $category->save();
+        
+        //  $category->update($request->validated());
+
+        return redirect()->route('categories.index');
     }
 
     /**
@@ -86,8 +99,10 @@ class AdminCategoriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Category $category)
     {
-        //
+        $category->delete();
+
+        return redirect()->route('categories.index');
     }
 }
